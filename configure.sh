@@ -224,6 +224,7 @@ verify_ansible_hosts() {
     local node_id=
     local node_addr=
     local node_username=
+    local node_keyfile=
     local node_password=
     local node_control=
     local node_hostname=
@@ -239,16 +240,18 @@ verify_ansible_hosts() {
         node_id=$(echo "${var}" | awk -F"_" '{print $5}')
         node_addr="BOOTSTRAP_ANSIBLE_HOST_ADDR_${node_id}"
         node_username="BOOTSTRAP_ANSIBLE_SSH_USERNAME_${node_id}"
+        node_keyfile="BOOTSTRAP_ANSIBLE_SSH_KEYFILE_${node_id}"
         node_password="BOOTSTRAP_ANSIBLE_SUDO_PASSWORD_${node_id}"
         node_control="BOOTSTRAP_ANSIBLE_CONTROL_NODE_${node_id}"
         node_hostname="BOOTSTRAP_ANSIBLE_HOSTNAME_${node_id}"
         _has_envar "${node_addr}"
         _has_envar "${node_username}"
+        _has_envar "${node_keyfile}"
         _has_envar "${node_password}"
         _has_envar "${node_control}"
         _has_optional_envar "${node_hostname}"
 
-        if ssh -q -o BatchMode=yes -o ConnectTimeout=5 "${!node_username}"@"${!var}" "true"; then
+        if ssh -q -o BatchMode=yes -o ConnectTimeout=5 -I "${!node_keyfile}" "${!node_username}"@"${!var}" "true"; then
             _log "INFO" "Successfully SSH'ed into host '${!var}' with username '${!node_username}'"
         else
             _log "ERROR" "Unable to SSH into host '${!var}' with username '${!node_username}'"
@@ -265,6 +268,7 @@ success() {
 generate_ansible_host_secrets() {
     local node_id=
     local node_username=
+    local node_keyfile=
     local node_password=
     local node_hostname=
     default_control_node_prefix=${BOOTSTRAP_ANSIBLE_DEFAULT_CONTROL_NODE_HOSTNAME_PREFIX:-k8s-}
@@ -290,9 +294,11 @@ generate_ansible_host_secrets() {
         fi
         {
             node_username="BOOTSTRAP_ANSIBLE_SSH_USERNAME_${node_id}"
+            node_keyfile="BOOTSTRAP_ANSIBLE_SSH_KEYFILE_${node_id}"
             node_password="BOOTSTRAP_ANSIBLE_SUDO_PASSWORD_${node_id}"
             printf "kind: Secret\n"
             printf "ansible_user: %s\n" "${!node_username}"
+            printf "ansible_private_key_file: %s\n" "${!node_keyfile}"
             printf "ansible_become_pass: %s\n" "${!node_password}"
         } > "${PROJECT_DIR}/provision/ansible/inventory/host_vars/${node_hostname}.sops.yml"
         sops --encrypt --in-place "${PROJECT_DIR}/provision/ansible/inventory/host_vars/${node_hostname}.sops.yml"
