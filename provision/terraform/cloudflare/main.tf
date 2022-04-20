@@ -3,7 +3,7 @@ terraform {
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "3.11.0"
+      version = "3.12.2"
     }
     http = {
       source  = "hashicorp/http"
@@ -88,23 +88,5 @@ resource "cloudflare_record" "homelab" {
   value   = chomp(data.http.ipv4.body)
   proxied = false
   type    = "A"
-  ttl     = 1
-}
-
-resource "cloudflare_record" "hajimari" {
-  name    = "hajimari"
-  zone_id = lookup(data.cloudflare_zones.domain.zones[0], "id")
-  value   = "homelab.${data.sops_file.cloudflare_secrets.data["cloudflare_domain"]}"
-  proxied = false
-  type    = "CNAME"
-  ttl     = 1
-}
-
-resource "cloudflare_record" "echo_server" {
-  name    = "echo-server"
-  zone_id = lookup(data.cloudflare_zones.domain.zones[0], "id")
-  value   = "homelab.${data.sops_file.cloudflare_secrets.data["cloudflare_domain"]}"
-  proxied = false
-  type    = "CNAME"
   ttl     = 1
 }
