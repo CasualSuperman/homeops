@@ -38,7 +38,7 @@ resource "cloudflare_zone_settings_override" "cloudflare_settings" {
     ssl = "strict"
     # /ssl-tls/edge-certificates
     always_use_https         = "on"
-    min_tls_version          = "1.0"
+    min_tls_version          = "1.2"
     opportunistic_encryption = "on"
     tls_1_3                  = "zrt"
     automatic_https_rewrites = "on"
@@ -51,11 +51,11 @@ resource "cloudflare_zone_settings_override" "cloudflare_settings" {
     # /speed/optimization
     brotli = "on"
     minify {
-      css  = "on"
-      js   = "on"
-      html = "on"
+      css  = "off"
+      js   = "off"
+      html = "off"
     }
-    rocket_loader = "on"
+    rocket_loader = "off"
     # /caching/configuration
     always_online    = "off"
     development_mode = "off"
@@ -82,29 +82,20 @@ data "http" "ipv4" {
   url = "http://ipv4.icanhazip.com"
 }
 
-resource "cloudflare_record" "ipv4" {
-  name    = "ipv4"
+resource "cloudflare_record" "homelab" {
+  name    = "homelab"
   zone_id = lookup(data.cloudflare_zones.domain.zones[0], "id")
   value   = chomp(data.http.ipv4.body)
-  proxied = true
+  proxied = false
   type    = "A"
-  ttl     = 1
-}
-
-resource "cloudflare_record" "root" {
-  name    = data.sops_file.cloudflare_secrets.data["cloudflare_domain"]
-  zone_id = lookup(data.cloudflare_zones.domain.zones[0], "id")
-  value   = "ipv4.${data.sops_file.cloudflare_secrets.data["cloudflare_domain"]}"
-  proxied = true
-  type    = "CNAME"
   ttl     = 1
 }
 
 resource "cloudflare_record" "hajimari" {
   name    = "hajimari"
   zone_id = lookup(data.cloudflare_zones.domain.zones[0], "id")
-  value   = "ipv4.${data.sops_file.cloudflare_secrets.data["cloudflare_domain"]}"
-  proxied = true
+  value   = "homelab.${data.sops_file.cloudflare_secrets.data["cloudflare_domain"]}"
+  proxied = false
   type    = "CNAME"
   ttl     = 1
 }
@@ -112,8 +103,8 @@ resource "cloudflare_record" "hajimari" {
 resource "cloudflare_record" "echo_server" {
   name    = "echo-server"
   zone_id = lookup(data.cloudflare_zones.domain.zones[0], "id")
-  value   = "ipv4.${data.sops_file.cloudflare_secrets.data["cloudflare_domain"]}"
-  proxied = true
+  value   = "homelab.${data.sops_file.cloudflare_secrets.data["cloudflare_domain"]}"
+  proxied = false
   type    = "CNAME"
   ttl     = 1
 }
