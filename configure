@@ -372,9 +372,9 @@ verify_ansible_hosts() {
         fi
 
         if ssh -q -o BatchMode=yes -o ConnectTimeout=5 -i "${!node_keyfile}" "${!node_username}"@"${!var}" "true"; then
-            _log "INFO" "SSH into host '${!var}' with username '${!node_username}' was successfull"
+            _log "INFO" "SSH into host '${!var}' with username '${!node_username}' was successful"
         else
-            _log "ERROR" "SSH into host '${!var}' with username '${!node_username}'was NOT successful, did you copy over your SSH key?"
+            _log "ERROR" "SSH into host '${!var}' with username '${!node_username}' was NOT successful, did you copy over your SSH key?"
             exit 1
         fi
     done
