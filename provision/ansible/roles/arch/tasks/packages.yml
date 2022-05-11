@@ -1,7 +1,7 @@
 ---
 - name: Upgrade all system packages
   community.general.pacman:
-    upgrade: yes
+    upgrade: true
     update_cache: true
   register: pacman_upgrade
   retries: 5
@@ -12,15 +12,22 @@
     name:
       - ca-certificates
       - curl
+      - hdparm
+      - htop
+      - gptfdisk # gdisk
       - iproute2 # net-tools available, but deprecated
-      - iptables # in place of arptables & ebtables
+      - iptables-nft # in place of arptables & ebtables
       - iputils # in place of iputils-ping
       - ipvsadm
       - lvm2
+      - nano
       - nfs-utils # in place of nfs-common
+      - nvme-cli
       - open-iscsi
       - psmisc
       - smartmontools
+      - socat
+      - unzip
 
       # - apt-transport-https # no equivalent
       # - software-properties-common # apt-add-repository, etc. no equivalent selected
@@ -29,27 +36,6 @@
   register: pacman_install_common
   retries: 5
   until: pacman_install_common is success
-
-#- name: Check if Raspberry Pi
-#  ansible.builtin.command: grep -q  "Raspberry Pi" /proc/cpuinfo
-#  ignore_errors: true
-#  register: is_raspberry
-
-# Maybe check for arch rpi?
-#- name: Install raspberry specific packages for Arch 21 or greater
-#  ansible.builtin.apt:
-#    name:
-#      - linux-modules-extra-raspi
-#    install_recommends: false
-#    update_cache: true
-#    cache_valid_time: 3600
-#    autoclean: true
-#    autoremove: true
-#  ignore_errors: true
-#  register: apt_install_raspberry
-#  retries: 5
-#  until: apt_install_raspberry is success
-#  when: is_raspberry # and (ansible_lsb.major_release|int >= 21)
 
 # TODO: systemd service to run pacman periodically? Install informant from AUR? How to get notified?
 
